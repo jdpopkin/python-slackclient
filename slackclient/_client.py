@@ -7,9 +7,9 @@ from slackclient._server import Server
 
 
 class SlackClient(object):
-    def __init__(self, token):
+    def __init__(self, token, timeout=None, **options):
         self.token = token
-        self.server = Server(self.token, False)
+        self.server = Server(self.token, False, timeout, **options)
 
     def rtm_connect(self):
         try:

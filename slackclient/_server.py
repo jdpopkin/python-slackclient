@@ -9,7 +9,7 @@ import json
 
 
 class Server(object):
-    def __init__(self, token, connect=True):
+    def __init__(self, token, connect=True, timeout=None, **options):
         self.token = token
         self.username = None
         self.domain = None
@@ -23,7 +23,7 @@ class Server(object):
         self.api_requester = SlackRequest()
 
         if connect:
-            self.rtm_connect()
+            self.rtm_connect(false, None, **options)
 
     def __eq__(self, compare_str):
         if compare_str == self.domain or compare_str == self.token:
@@ -40,7 +40,7 @@ class Server(object):
     def __repr__(self):
         return self.__str__()
 
-    def rtm_connect(self, reconnect=False):
+    def rtm_connect(self, reconnect=False, timeout=None, **options):
         reply = self.api_requester.do(self.token, "rtm.start")
         if reply.status_code != 200:
             raise SlackConnectionError
@@ -50,7 +50,7 @@ class Server(object):
                 self.ws_url = login_data['url']
                 if not reconnect:
                     self.parse_slack_login_data(login_data)
-                self.connect_slack_websocket(self.ws_url)
+                self.connect_slack_websocket(self.ws_url, timeout, **options)
             else:
                 raise SlackLoginError
 
@@ -63,9 +63,9 @@ class Server(object):
         self.parse_channel_data(login_data["ims"])
         self.parse_user_data(login_data["users"])
 
-    def connect_slack_websocket(self, ws_url):
+    def connect_slack_websocket(self, ws_url, timeout=None, **options):
         try:
-            self.websocket = create_connection(ws_url)
+            self.websocket = create_connection(ws_url, timeout, **options)
             self.websocket.sock.setblocking(0)
         except:
             raise SlackConnectionError
